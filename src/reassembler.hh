@@ -7,9 +7,27 @@
 
 class Reassembler
 {
-  map<uint64_t, uint64_t> missing_ranges; // [missing_start, missing_end]
-  map<uint64_t, string> pending_data; // [index, data]
-  uint64_t next_index = 0;
+  using index = uint64_t;
+  using Ranges = map<index, index>;
+  using RangeIt = Ranges::iterator;
+  Ranges missing_ranges; // [missing_start, missing_end]
+  map<index, string> pending_data; // [index, data]
+  index next_index = 0; // next index that should be sent
+  index bytes_pending_ = 0;
+
+  bool try_send_data(string & data, index first_index, Writer& output);
+
+  /*
+    potential actions
+      1. delete Range (range is before next_index)
+      2. leave part of range, and insert pending data
+      3. modify range(part of range before next_index)
+      4. insert last range (data is greater than last existing range)
+  */
+
+  void handle_range(RangeIt &it, string & data, index first_index);
+
+  
 
 public:
   /*
