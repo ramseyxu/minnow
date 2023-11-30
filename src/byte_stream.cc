@@ -16,7 +16,7 @@ void debug_print(const char* format, ...) {
 #endif
 }
 
-ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), buffer(vector<char> (capacity * 2)) {}
+ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), buffer(deque<string>()) {}
 
 bool ByteStream::buffer_empty() const {
     return buffer_size_ == 0;
@@ -26,37 +26,40 @@ uint64_t ByteStream::remaining_capacity() const {
     return capacity_ - buffer_size_;
 }
 
-uint64_t ByteStream::copy_to_buffer(const string &data) {
+uint64_t ByteStream::copy_to_buffer(string data) {
     if (remaining_capacity() == 0)
         return 0;
-    size_t copy_len = min(data.size(), (size_t)remaining_capacity());
-    if (tail + copy_len > buffer.size()) {
-      copy(buffer.begin() + head, buffer.begin() + tail, buffer.begin());
-      tail -= head;
-      head = 0;
-    }
-    copy(data.begin(), data.begin() + copy_len, buffer.begin() + tail);
-    tail += copy_len;
-    buffer_size_ += copy_len;
-    bytes_written_ += copy_len;
-
-    return copy_len;
+    if (data.size() > remaining_capacity())
+        data = data.substr(0, remaining_capacity());
+    bytes_written_ += data.size();
+    buffer_size_ += data.size();
+    buffer.push_back(data); // TODO: std::move?
+    return buffer.back().size();
 }
 
 string_view ByteStream::copy_from_buffer(uint64_t len) const {
     if (buffer_empty())
         return "";
     size_t copy_len = min(len, buffer_size_);
-    return string_view(buffer.data() + head, copy_len);
+    return string_view(buffer.front());
 }
 
 uint64_t ByteStream::pop_out(uint64_t len) {
     if (buffer_empty())
         return 0;
     size_t pop_len = min(len, buffer_size_);
-    head += pop_len;
-    buffer_size_ -= pop_len;
+    size_t unpopped_len = pop_len;
+    while (unpopped_len > 0) {
+        if (buffer.front().size() > unpopped_len) {
+            buffer.front() = buffer.front().substr(unpopped_len);
+            unpopped_len = 0;
+        } else {
+            unpopped_len -= buffer.front().size();
+            buffer.pop_front();
+        }
+    }
     bytes_read_ += pop_len;
+    buffer_size_ -= pop_len;
     return pop_len;
 }
 

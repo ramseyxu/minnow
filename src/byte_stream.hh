@@ -16,12 +16,12 @@ class ByteStream
 {
 protected:
   uint64_t capacity_;
-  // Please add any additional state to the ByteStream here, and not to the Writer and Reader interfaces.
-  vector<char> buffer;
 
-  uint64_t head = 0, tail = 0, buffer_size_ = 0, bytes_written_ = 0, bytes_read_ = 0;
+  deque<string> buffer;
 
-  uint64_t copy_to_buffer(const string &data);
+  uint64_t buffer_size_ = 0, bytes_written_ = 0, bytes_read_ = 0;
+
+  uint64_t copy_to_buffer(string data);
 
   string_view copy_from_buffer(uint64_t len) const;
 
