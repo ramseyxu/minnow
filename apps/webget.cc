@@ -31,10 +31,10 @@ void get_URL( const string& host, const string& path )
     socket.write(request);
 
     // 4. read response
-    string buffer(100);
+    string buffer;
     while (!socket.eof()) {
-      auto read_len = socket.read(buffer);
-      cout << string_view(buffer.data(), read_len);
+      socket.read(buffer);
+      cout << buffer;
     }
 }
 
