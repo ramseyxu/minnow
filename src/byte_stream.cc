@@ -44,7 +44,7 @@ uint64_t ByteStream::pop_out(uint64_t len) {
     size_t unpopped_len = pop_len;
     while (unpopped_len > 0) {
         if (buffer.front().size() > unpopped_len) {
-            buffer.front().remove_prefix(unpopped_len);
+            buffer.front() = buffer.front().substr(unpopped_len);
             unpopped_len = 0;
         } else {
             unpopped_len -= buffer.front().size();
