@@ -33,7 +33,7 @@ uint64_t ByteStream::copy_to_buffer(string data) {
         data = data.substr(0, remaining_capacity());
     bytes_written_ += data.size();
     buffer_size_ += data.size();
-    buffer.push_back(data); // TODO: std::move?
+    buffer.push_back(move(data)); // TODO: std::move?
     return buffer.back().size();
 }
 
