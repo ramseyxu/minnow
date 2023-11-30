@@ -23,8 +23,6 @@ protected:
 
   uint64_t copy_to_buffer(string data);
 
-  string_view copy_from_buffer(uint64_t len) const;
-
   bool input_ended_{};  //!< Flag indicating that the stream input has ended.
 
   bool error_{};  //!< Flag indicating that the stream suffered an error.

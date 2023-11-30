@@ -37,13 +37,6 @@ uint64_t ByteStream::copy_to_buffer(string data) {
     return buffer.back().size();
 }
 
-string_view ByteStream::copy_from_buffer(uint64_t len) const {
-    if (buffer_empty())
-        return "";
-    size_t copy_len = min(len, buffer_size_);
-    return string_view(buffer.front().data(), copy_len);
-}
-
 uint64_t ByteStream::pop_out(uint64_t len) {
     if (buffer_empty())
         return 0;
@@ -51,7 +44,7 @@ uint64_t ByteStream::pop_out(uint64_t len) {
     size_t unpopped_len = pop_len;
     while (unpopped_len > 0) {
         if (buffer.front().size() > unpopped_len) {
-            buffer.front() = buffer.front().substr(unpopped_len);
+            buffer.front().remove_prefix(unpopped_len);
             unpopped_len = 0;
         } else {
             unpopped_len -= buffer.front().size();
@@ -95,7 +88,7 @@ uint64_t Writer::bytes_pushed() const
 
 string_view Reader::peek() const
 {
-  return copy_from_buffer(buffer_size_);
+  return buffer_empty() ? string_view() : buffer.front();
 }
 
 bool Reader::is_finished() const
