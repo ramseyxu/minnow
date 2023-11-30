@@ -16,7 +16,8 @@ void debug_print(const char* format, ...) {
 #endif
 }
 
-ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), buffer(deque<string>()) {}
+ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), buffer(deque<string>()),
+buffer_view(deque<string_view>()) {}
 
 bool ByteStream::buffer_empty() const {
     return buffer_size_ == 0;
