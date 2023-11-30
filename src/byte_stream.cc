@@ -27,7 +27,7 @@ uint64_t ByteStream::remaining_capacity() const {
 }
 
 uint64_t ByteStream::copy_to_buffer(string data) {
-    if (remaining_capacity() == 0)
+    if (remaining_capacity() == 0 || data.size() == 0)
         return 0;
     if (data.size() > remaining_capacity())
         data = data.substr(0, remaining_capacity());
