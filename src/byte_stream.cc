@@ -35,8 +35,7 @@ uint64_t ByteStream::copy_to_buffer(string data) {
     bytes_written_ += data.size();
     buffer_size_ += data.size();
     buffer.push_back(std::move(data)); // TODO: std::move?
-    if (front_string_view.size() == 0)
-        front_string_view = buffer.front();
+    buffer_view.push_back(buffer.back());
     return buffer.back().size();
 }
 
@@ -46,13 +45,13 @@ uint64_t ByteStream::pop_out(uint64_t len) {
     size_t pop_len = min(len, buffer_size_);
     size_t unpopped_len = pop_len;
     while (unpopped_len > 0) {
-        if (front_string_view.size() > unpopped_len) {
-          front_string_view.remove_prefix(unpopped_len);
+        if (buffer_view.front().size() > unpopped_len) {
+          buffer_view.front().remove_prefix(unpopped_len);
           unpopped_len = 0;
         } else {
-          unpopped_len -= front_string_view.size();
+          unpopped_len -= buffer_view.front().size();
           buffer.pop_front();
-          front_string_view = buffer.empty() ? "" : buffer.front();
+          buffer_view.pop_front();
         }
     }
     bytes_read_ += pop_len;
@@ -92,7 +91,7 @@ uint64_t Writer::bytes_pushed() const
 
 string_view Reader::peek() const
 {
-  return front_string_view;
+  return buffer_view.front();
 }
 
 bool Reader::is_finished() const
