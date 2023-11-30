@@ -18,6 +18,7 @@ protected:
   uint64_t capacity_;
 
   deque<string> buffer;
+  string_view front_string_view;
 
   uint64_t buffer_size_ = 0, bytes_written_ = 0, bytes_read_ = 0;
 
