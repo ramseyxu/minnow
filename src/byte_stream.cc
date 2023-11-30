@@ -41,7 +41,7 @@ string_view ByteStream::copy_from_buffer(uint64_t len) const {
     if (buffer_empty())
         return "";
     size_t copy_len = min(len, buffer_size_);
-    return string_view(buffer.front());
+    return string_view(buffer.front().data(), copy_len);
 }
 
 uint64_t ByteStream::pop_out(uint64_t len) {
