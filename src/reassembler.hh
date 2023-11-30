@@ -2,10 +2,15 @@
 
 #include "byte_stream.hh"
 
+#include <map>
 #include <string>
 
 class Reassembler
 {
+  map<uint64_t, uint64_t> missing_ranges; // [missing_start, missing_end]
+  map<uint64_t, string> pending_data; // [index, data]
+  uint64_t next_index = 0;
+
 public:
   /*
    * Insert a new substring to be reassembled into a ByteStream.
