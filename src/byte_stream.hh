@@ -4,6 +4,10 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
 
 class Reader;
 class Writer;
@@ -13,6 +17,23 @@ class ByteStream
 protected:
   uint64_t capacity_;
   // Please add any additional state to the ByteStream here, and not to the Writer and Reader interfaces.
+  vector<char> buffer;
+
+  uint64_t head = 0, tail = 0, buffer_size_ = 0, bytes_written_ = 0, bytes_read_ = 0;
+
+  uint64_t copy_to_buffer(const string &data);
+
+  string_view copy_from_buffer(uint64_t len) const;
+
+  bool input_ended_{};  //!< Flag indicating that the stream input has ended.
+
+  bool error_{};  //!< Flag indicating that the stream suffered an error.
+
+  bool buffer_empty() const;
+
+  uint64_t remaining_capacity() const;
+
+  uint64_t pop_out(uint64_t len);
 
 public:
   explicit ByteStream( uint64_t capacity );
