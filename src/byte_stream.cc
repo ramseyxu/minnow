@@ -2,22 +2,9 @@
 
 #include "byte_stream.hh"
 #include "cassert"
-#include "cstdio"
-#include <cstdarg>
-
-#define DEBUG__
-
-void debug_print(const char* format, ...) {
-#ifdef DEBUG__
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-#endif
-}
 
 ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), buffer(deque<string>()),
-buffer_view(deque<string_view>()) {}
+buffer_view(deque<string_view>()), input_ended_(false) {}
 
 bool ByteStream::buffer_empty() const {
     return buffer_size_ == 0;

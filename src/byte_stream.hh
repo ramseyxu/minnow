@@ -24,7 +24,7 @@ protected:
 
   uint64_t copy_to_buffer(string data);
 
-  bool input_ended_{};  //!< Flag indicating that the stream input has ended.
+  bool input_ended_ = false;  //!< Flag indicating that the stream input has ended.
 
   bool error_{};  //!< Flag indicating that the stream suffered an error.
 

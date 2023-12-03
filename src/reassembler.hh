@@ -14,22 +14,14 @@ class Reassembler
   map<index, string> pending_data; // [index, data]
   index next_index = 0; // next index that should be sent
   index bytes_pending_ = 0;
+  index last_byte = 0;
 
   bool try_send_data(string & data, index first_index, Writer& output);
 
-  /*
-    potential actions
-      1. delete Range (range is before next_index)
-      2. leave part of range, and insert pending data
-      3. modify range(part of range before next_index)
-      4. insert last range (data is greater than last existing range)
-  */
-
-  void handle_range(RangeIt &it, string & data, index first_index);
-
-  
+  void add_pending_data(string data, index l);
 
 public:
+  Reassembler();
   /*
    * Insert a new substring to be reassembled into a ByteStream.
    *   `first_index`: the index of the first byte of the substring
