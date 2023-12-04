@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <iostream>
 
-//#define DEBUG__
+#define DEBUG__
 
 void debug_print(const char* format, ...) {
 #ifdef DEBUG__
@@ -91,7 +91,7 @@ bool Reassembler::try_fill_missing_range(index l, index r, string data, index fi
 void Reassembler::add_pending_data(string data, index l)
 {
   bytes_pending_ += data.size();
-  debug_print("bytes_pending_ + %llu =  %llu\n", data.size(), bytes_pending_);
+  debug_print("add pending data %s index %llu bytes_pending_ + %llu = %llu\n", data.c_str(), l, data.size(), bytes_pending_);
   pending_data[l] = std::move(data);
 }
 
