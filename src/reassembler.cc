@@ -166,9 +166,12 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
       auto l = it->first;
       auto r = it->second;
       if (try_fill_missing_range(l, r, data, first_index)) {
+        debug_print("erase missing range [%llu, %llu]\n", l, r);
         it = missing_ranges.erase(it);
-      } else
+      } else {
+        debug_print("skip missing range [%llu, %llu]\n", l, r);
         ++it;
+      }
     }
   }
 }
