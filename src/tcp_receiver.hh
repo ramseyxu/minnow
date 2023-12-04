@@ -6,6 +6,7 @@
 
 class TCPReceiver
 {
+  Wrap32 ISN;
 public:
   /*
    * The TCPReceiver receives TCPSenderMessages, inserting their payload into the Reassembler
