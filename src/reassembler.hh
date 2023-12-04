@@ -20,6 +20,8 @@ class Reassembler
 
   void add_pending_data(string data, index l);
 
+  bool try_fill_missing_range(index l, index r, string data, index first_index);
+
 public:
   Reassembler();
   /*

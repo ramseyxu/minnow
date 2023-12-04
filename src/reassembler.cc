@@ -38,6 +38,55 @@ bool Reassembler::try_send_data(string & data, index first_index, Writer& output
   return false;
 }
 
+
+bool Reassembler::try_fill_missing_range(index l, index r, string data, index first_index)
+{
+  index last_index = first_index + data.size() - 1;
+  // 1. missing range is not intersect with data range
+  if (first_index > r)
+    return false;
+  if (last_index < l)
+    return false;
+  
+  // 2. missing range is fully covered by data
+  if (l >= first_index and r <= last_index) {
+    missing_ranges.erase(l);
+    if (l != first_index or r != last_index)
+      data = data.substr(l - first_index, r - l + 1);
+    add_pending_data(std::move(data), l);
+    return true;
+  }
+
+  // 3. data can only cover left part of missing range
+  if (first_index <= l and last_index < r) {
+    auto len = last_index - l + 1;
+    add_pending_data(data.substr(l - first_index, len), l);
+    missing_ranges[last_index + 1] = r;
+    return true;
+  }
+
+  // 4. data can only cover right part of missing range
+  if (first_index > l and last_index >= r) {
+    auto len = r - first_index + 1;
+    add_pending_data(data.substr(0, len), first_index);
+    missing_ranges[l] = first_index - 1;
+    return true;
+  }
+
+  // 5. missing range fully cover data range
+  if (first_index > l and last_index < r) {
+    missing_ranges[l] = first_index - 1;
+    missing_ranges[last_index + 1] = r;
+    add_pending_data(std::move(data), first_index);
+    return true;
+  }
+  
+  printf("l = %llu, r = %llu, first_index = %llu, last_index = %llu\n", l, r, first_index, last_index);
+  // I think all cases are covered, if not, assert false
+  assert(false);
+  return false;
+}
+
 void Reassembler::add_pending_data(string data, index l)
 {
   bytes_pending_ += data.size();
@@ -108,41 +157,10 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
     while (it != missing_ranges.end()) {
       auto l = it->first;
       auto r = it->second;
-      if (r < first_index) {
-        it = next(it);
-        continue;
-      }
-
-      auto len = data.size();
-      auto last_index = first_index + data.size() - 1;
-      // missing range is fully greater than data range
-      if (l > last_index)
-        break;
-      // missing range is fully covered by data
-      if (l >= first_index and r <= last_index) {
-        len = r - l + 1;
+      if (try_fill_missing_range(l, r, data, first_index)) {
         it = missing_ranges.erase(it);
-        pending_data[l] = data.substr(l - first_index, len);
-        bytes_pending_ += len;
-        debug_print("bytes_pending_ + %llu =  %llu\n", len, bytes_pending_);
-        continue;
-      }
-      // now, data can only cover part of missing range
-      if (first_index > l)
-        missing_ranges[l] = first_index - 1;
-      if (last_index < r)
-        missing_ranges[last_index + 1] = r;
-      if (first_index < l) {
-        len = data.size() - (l - first_index);
-        add_pending_data(data.substr(l - first_index, len), l);
-      }
-      if (last_index > r) {
-        len = data.size() - (r - last_index);
-        add_pending_data(data.substr(0, len), first_index);
-      }
-      if (l <= first_index and last_index <= r)
-        add_pending_data(std::move(data), first_index);
-      it = missing_ranges.erase(it);
+      } else
+        ++it;
     }
   }
 }
