@@ -13,7 +13,7 @@ void TCPReceiver::receive( TCPSenderMessage message, Reassembler& reassembler, W
   }
 
   uint64_t abs_seqno = message.seqno.unwrap(isn_.value(), inbound_stream.bytes_pushed() + 1);
-  uint64_t first_index = abs_seqno - 1;
+  uint64_t first_index = message.SYN ? 0 : abs_seqno - 1;
   reassembler.insert(first_index, message.payload.release(), message.FIN, inbound_stream);
 }
 
