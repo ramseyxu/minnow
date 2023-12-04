@@ -3,6 +3,7 @@
 #include <cstdarg>
 #include <cassert>
 #include <cstdint>
+#include <iostream>
 
 //#define DEBUG__
 
@@ -81,7 +82,7 @@ bool Reassembler::try_fill_missing_range(index l, index r, string data, index fi
     return true;
   }
   
-  printf("l = %llu, r = %llu, first_index = %llu, last_index = %llu\n", l, r, first_index, last_index);
+  cout<< "l = " << l << ", r = " << r << ", first_index = " << first_index << ", last_index = " << last_index << endl;
   // I think all cases are covered, if not, assert false
   assert(false);
   return false;
