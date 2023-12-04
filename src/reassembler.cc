@@ -42,6 +42,7 @@ bool Reassembler::try_send_data(string & data, index first_index, Writer& output
 
 bool Reassembler::try_fill_missing_range(index l, index r, string data, index first_index)
 {
+  debug_print("try fill missing range [%llu, %llu] with data %s index %llu\n", l, r, data.c_str(), first_index);
   index last_index = first_index + data.size() - 1;
   // 1. missing range is not intersect with data range
   if (first_index > r)
@@ -122,13 +123,15 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
       if (r < next_index) {
         // covered by current data, erase
         bytes_pending_ -= it->second.size();
-        debug_print("bytes_pending_ - %llu = %llu\n", it->second.size(), bytes_pending_);
+        debug_print("erase pending data %s index %llu, bytes_pending_ - %llu = %llu\n",
+          it->second.c_str(), it->first, it->second.size(), bytes_pending_);
         it = pending_data.erase(it);
       }
       else {
         if (try_send_data(it->second, it->first, output)) {
           bytes_pending_ -= it->second.size();
-          debug_print("bytes_pending_ - %llu = %llu\n", it->second.size(), bytes_pending_);
+          debug_print("erase pending data %s index %llu, bytes_pending_ - %llu = %llu\n",
+            it->second.c_str(), it->first, it->second.size(), bytes_pending_);
           it = pending_data.erase(it);
         } else
           break;
