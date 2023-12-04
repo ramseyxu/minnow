@@ -3,52 +3,57 @@
 #include "byte_stream.hh"
 #include "cassert"
 
-ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), buffer(deque<string>()),
-buffer_view(deque<string_view>()), input_ended_(false) {}
+ByteStream::ByteStream( uint64_t capacity )
+  : capacity_( capacity ), buffer( deque<string>() ), buffer_view( deque<string_view>() ), input_ended_( false )
+{}
 
-bool ByteStream::buffer_empty() const {
-    return buffer_size_ == 0;
+bool ByteStream::buffer_empty() const
+{
+  return buffer_size_ == 0;
 }
 
-uint64_t ByteStream::remaining_capacity() const {
-    return capacity_ - buffer_size_;
+uint64_t ByteStream::remaining_capacity() const
+{
+  return capacity_ - buffer_size_;
 }
 
-uint64_t ByteStream::copy_to_buffer(string data) {
-    if (remaining_capacity() == 0 || data.size() == 0)
-        return 0;
-    if (data.size() > remaining_capacity())
-        data = data.substr(0, remaining_capacity());
-    bytes_written_ += data.size();
-    buffer_size_ += data.size();
-    buffer.push_back(std::move(data)); // TODO: std::move?
-    buffer_view.push_back(buffer.back());
-    return buffer.back().size();
+uint64_t ByteStream::copy_to_buffer( string data )
+{
+  if ( remaining_capacity() == 0 || data.size() == 0 )
+    return 0;
+  if ( data.size() > remaining_capacity() )
+    data = data.substr( 0, remaining_capacity() );
+  bytes_written_ += data.size();
+  buffer_size_ += data.size();
+  buffer.push_back( std::move( data ) ); // TODO: std::move?
+  buffer_view.push_back( buffer.back() );
+  return buffer.back().size();
 }
 
-uint64_t ByteStream::pop_out(uint64_t len) {
-    if (buffer_empty())
-        return 0;
-    size_t pop_len = min(len, buffer_size_);
-    size_t unpopped_len = pop_len;
-    while (unpopped_len > 0) {
-        if (buffer_view.front().size() > unpopped_len) {
-          buffer_view.front().remove_prefix(unpopped_len);
-          unpopped_len = 0;
-        } else {
-          unpopped_len -= buffer_view.front().size();
-          buffer.pop_front();
-          buffer_view.pop_front();
-        }
+uint64_t ByteStream::pop_out( uint64_t len )
+{
+  if ( buffer_empty() )
+    return 0;
+  size_t pop_len = min( len, buffer_size_ );
+  size_t unpopped_len = pop_len;
+  while ( unpopped_len > 0 ) {
+    if ( buffer_view.front().size() > unpopped_len ) {
+      buffer_view.front().remove_prefix( unpopped_len );
+      unpopped_len = 0;
+    } else {
+      unpopped_len -= buffer_view.front().size();
+      buffer.pop_front();
+      buffer_view.pop_front();
     }
-    bytes_read_ += pop_len;
-    buffer_size_ -= pop_len;
-    return pop_len;
+  }
+  bytes_read_ += pop_len;
+  buffer_size_ -= pop_len;
+  return pop_len;
 }
 
 void Writer::push( string data )
 {
-  copy_to_buffer(data);
+  copy_to_buffer( data );
 }
 
 void Writer::close()
@@ -93,7 +98,7 @@ bool Reader::has_error() const
 
 void Reader::pop( uint64_t len )
 {
-  pop_out(len);
+  pop_out( len );
 }
 
 uint64_t Reader::bytes_buffered() const

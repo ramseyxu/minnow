@@ -10,17 +10,17 @@ class Reassembler
   using index = uint64_t;
   using Ranges = map<index, index>;
   using RangeIt = Ranges::iterator;
-  Ranges missing_ranges; // [missing_start, missing_end]
+  Ranges missing_ranges;           // [missing_start, missing_end]
   map<index, string> pending_data; // [index, data]
-  index next_index = 0; // next index that should be sent
+  index next_index = 0;            // next index that should be sent
   index bytes_pending_ = 0;
   index last_byte = 0;
 
-  bool try_send_data(string & data, index first_index, Writer& output);
+  bool try_send_data( string& data, index first_index, Writer& output );
 
-  void add_pending_data(string data, index l);
+  void add_pending_data( string data, index l );
 
-  bool try_fill_missing_range(index l, index r, string data, index first_index);
+  bool try_fill_missing_range( index l, index r, string data, index first_index );
 
 public:
   Reassembler();
