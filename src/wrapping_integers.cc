@@ -9,7 +9,7 @@ Wrap32 Wrap32::wrap( uint64_t n, Wrap32 zero_point )
 
 uint64_t Wrap32::unwrap( Wrap32 zero_point, uint64_t checkpoint ) const
 {
-  uint64_t abs_seq1 = uint64_t(raw_value_ - zero_point.raw_value_ + 1) + checkpoint % (1LL << 32);
+  uint64_t abs_seq1 = uint64_t(raw_value_ - zero_point.raw_value_) + checkpoint % (1LL << 32);
   uint64_t abs_seq2 = abs_seq1 + (1LL << 32);
   if (abs_seq1 >= checkpoint) {
     abs_seq2 = abs_seq1;
