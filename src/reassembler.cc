@@ -52,7 +52,6 @@ bool Reassembler::try_fill_missing_range(index l, index r, string data, index fi
   
   // 2. missing range is fully covered by data
   if (l >= first_index and r <= last_index) {
-    missing_ranges.erase(l);
     if (l != first_index or r != last_index)
       data = data.substr(l - first_index, r - l + 1);
     add_pending_data(std::move(data), l);
