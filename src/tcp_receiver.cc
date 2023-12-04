@@ -10,6 +10,7 @@ void TCPReceiver::receive( TCPSenderMessage message, Reassembler& reassembler, W
   }
   uint64_t first_index = message.seqno.unwrap(ISN, inbound_stream.bytes_pushed() + 1);
   reassembler.insert(first_index, message.payload.release(), message.FIN, inbound_stream);
+  send(inbound_stream);
 }
 
 TCPReceiverMessage TCPReceiver::send( const Writer& inbound_stream ) const
