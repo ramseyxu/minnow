@@ -64,6 +64,7 @@ bool Reassembler::try_fill_missing_range(index l, index r, string data, index fi
     auto len = last_index - l + 1;
     add_pending_data(data.substr(l - first_index, len), l);
     missing_ranges[last_index + 1] = r;
+    debug_print("add missing range [%llu, %llu]\n", last_index + 1, r);
     return true;
   }
 
@@ -72,6 +73,7 @@ bool Reassembler::try_fill_missing_range(index l, index r, string data, index fi
     auto len = r - first_index + 1;
     add_pending_data(data.substr(0, len), first_index);
     missing_ranges[l] = first_index - 1;
+    debug_print("add missing range [%llu, %llu]\n", l, first_index - 1);
     return true;
   }
 
@@ -79,6 +81,8 @@ bool Reassembler::try_fill_missing_range(index l, index r, string data, index fi
   if (first_index > l and last_index < r) {
     missing_ranges[l] = first_index - 1;
     missing_ranges[last_index + 1] = r;
+    debug_print("add missing range [%llu, %llu]\n", l, first_index - 1);
+    debug_print("add missing range [%llu, %llu]\n", last_index + 1, r);
     add_pending_data(std::move(data), first_index);
     return true;
   }
