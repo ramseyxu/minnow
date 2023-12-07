@@ -128,7 +128,10 @@ void TCPSender::push( Reader& outbound_stream )
     uint64_t payload_size = min(free_buffer_size - is_syn, TCPConfig::MAX_PAYLOAD_SIZE);
     auto avaliable_data = outbound_stream.peek();
     payload_size = min(payload_size, avaliable_data.size());
-    string payload(avaliable_data.begin(), avaliable_data.begin() + payload_size);
+    string payload;
+    if (avaliable_data.size() > 0 && payload_size > 0) {
+      payload = std::string(avaliable_data.begin(), avaliable_data.begin() + payload_size);
+    }
     outbound_stream.pop(payload_size);
 
     // maybe adding is_fin will overflow the window size, we maybe need to handle it
