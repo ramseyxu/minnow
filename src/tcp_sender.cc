@@ -222,7 +222,7 @@ void TCPSender::tick(size_t ms_since_last_tick )
   if (timer_.expired()) {
     if (!outstanding_messages_.empty()) {
       need_retransmission_ = true; // looks like after tick, maybe_send will be called
-      if (window_size_ == 0) {
+      if (window_size_ != 0) {
         timer_.doublt_RTO();
         consecutive_retransmissions_++;
       }
