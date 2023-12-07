@@ -16,40 +16,40 @@ Timer::Timer(uint64_t initial_RTO_ms)
 {
 }
 
-Timer::start()
+void Timer::start()
 {
   assert(!is_running_)
   is_running_ = true;
   expired_time_ms_ = current_time_ms_ + current_RTO_ms_;
 }
 
-Timer::stop()
+void Timer::stop()
 {
   assert(is_running_)
   is_running_ = false;
 }
 
-Timer::is_running()
+bool Timer::is_running()
 {
   return is_running_;
 }
 
-Timer::expired()
+bool Timer::expired()
 {
   return is_running_ && current_time_ms_ >= expired_time_ms_;
 }
 
-Timer::tick(uint64_t ms_since_last_tick)
+void Timer::tick(uint64_t ms_since_last_tick)
 {
   current_time_ms_ += ms_since_last_tick;
 }
 
-Timer::reset_RTO()
+void Timer::reset_RTO()
 {
   current_RTO_ms_ = initial_RTO_ms_;
 }
 
-Timer::doublt_RTO()
+void Timer::doublt_RTO()
 {
   current_RTO_ms_ *= 2;
 }
@@ -59,11 +59,12 @@ TCPSender::TCPSender( uint64_t initial_RTO_ms, optional<Wrap32> fixed_isn )
   : isn_( fixed_isn.value_or( Wrap32 { random_device()() } ) ),
   timer_(Timer(initial_RTO_ms)),
   window_size_(1),
-  pre_sending_queue_(queue<TCPSenderMessage>()),
-  outstanding_messages_(queue<TCPSenderMessage>()),
+  pre_sending_queue_(deque<TCPSenderMessage>()),
+  outstanding_messages_(deque<TCPSenderMessage>()),
   sequence_numbers_in_flight_(0),
   consecutive_retransmissions_(0),
-  next_seq_no_(0)
+  next_seq_no_(0),
+  need_retransmission_(false)
 {
 }
 
@@ -103,7 +104,7 @@ optional<TCPSenderMessage> TCPSender::maybe_send()
   TCPSenderMessage message = pre_sending_queue_.front();
   pre_sending_queue_.pop_front();
   outstanding_messages_.push_back(message);
-  sequence_numbers_in_flight_ += message.length_in_sequence_space();
+  sequence_numbers_in_flight_ += message.sequence_length();
   return message;
 }
 
@@ -143,7 +144,7 @@ void TCPSender::push( Reader& outbound_stream )
       Buffer(payload),
       is_fin
     );
-    auto msg_size = message.length_in_sequence_space();
+    auto msg_size = message.sequence_length();
     pre_sending_queue_.push_back(message);
     free_buffer_size -= msg_size;
     next_seq_no_ += msg_size;
@@ -180,9 +181,10 @@ void TCPSender::receive( const TCPReceiverMessage& msg )
   while (!outstanding_messages_.empty()) {
     auto message = outstanding_messages_.front();
     auto seqno = message.seqno.unwrap(isn_, next_seq_no_);
-    if (seqno + message.length_in_sequence_space() <= ackno) {
+    auto last_seqno = seqno + message.sequence_length() - 1;
+    if (last_seqno <= ackno) {
       outstanding_messages_.pop_front();
-      sequence_numbers_in_flight_ -= message.length_in_sequence_space();
+      sequence_numbers_in_flight_ -= message.sequence_length();
       if (outstanding_messages_.empty()) {
         timer_.stop();
       }
@@ -217,7 +219,7 @@ void TCPSender::tick(size_t ms_since_last_tick )
     if (!outstanding_messages_.empty()) {
       need_retransmission_ = true; // looks like after tick, maybe_send will be called
       if (window_size_ == 0) {
-        current_RTO_ms_ *= 2;
+        timer_.doublt_RTO();
         consecutive_retransmissions_++;
       }
       timer_.stop();
