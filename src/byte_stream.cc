@@ -83,7 +83,7 @@ uint64_t Writer::bytes_pushed() const
 
 string_view Reader::peek() const
 {
-  return buffer_view.front();
+  return buffer_view.empty() ? string_view() : buffer_view.front();
 }
 
 bool Reader::is_finished() const
