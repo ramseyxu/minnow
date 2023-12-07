@@ -184,8 +184,8 @@ void TCPSender::receive( const TCPReceiverMessage& msg )
   while (!outstanding_messages_.empty()) {
     auto message = outstanding_messages_.front();
     auto seqno = message.seqno.unwrap(isn_, next_seq_no_);
-    auto last_seqno = seqno + message.sequence_length() - 1;
-    if (last_seqno <= ackno) {
+    auto next_need_seq = seqno + message.sequence_length();
+    if (next_need_seq <= ackno) {
       outstanding_messages_.pop_front();
       sequence_numbers_in_flight_ -= message.sequence_length();
       if (outstanding_messages_.empty()) {
