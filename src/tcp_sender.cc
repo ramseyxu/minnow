@@ -123,7 +123,9 @@ void TCPSender::push( Reader& outbound_stream )
     window_size_ - sequence_numbers_in_flight_ :
     1 - sequence_numbers_in_flight_;
 
-  while (free_buffer_size > 0 && !outbound_stream.is_finished()) {
+  while (free_buffer_size > 0 &&
+        !outbound_stream.is_finished() &&
+        outbound_stream.bytes_buffered() > 0) {
     bool is_syn = next_seq_no_ == 0;
     uint64_t payload_size = min(free_buffer_size - is_syn, TCPConfig::MAX_PAYLOAD_SIZE);
     auto avaliable_data = outbound_stream.peek();
