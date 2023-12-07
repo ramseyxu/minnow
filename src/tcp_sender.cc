@@ -119,10 +119,6 @@ void TCPSender::push( Reader& outbound_stream )
       2.4 update next_seq_no_
   */
 
-  if (outbound_stream.bytes_buffered() == 0) {
-    return;
-  }
-
   uint64_t free_buffer_size = window_size_ > 0 ?
     window_size_ - sequence_numbers_in_flight_ :
     1 - sequence_numbers_in_flight_;
