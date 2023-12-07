@@ -4,10 +4,47 @@
 #include "tcp_receiver_message.hh"
 #include "tcp_sender_message.hh"
 
+#include <deque>
+
+class Timer {
+  uint64_t current_time_ms_;
+  uint64_t expired_time_ms_;
+  bool is_running_;
+
+  uint64_t current_RTO_ms_;
+  uint64_t initial_RTO_ms_;
+
+public:
+  void start();
+  void stop();
+  bool is_running();
+
+  bool expired();
+
+  void reset_RTO();
+  void doublt_RTO();
+
+  void tick(uint64_t ms_since_last_tick);
+};
+
 class TCPSender
 {
   Wrap32 isn_;
-  uint64_t initial_RTO_ms_;
+
+  Timer timer_;
+
+  uint64_t window_size_;
+
+  deque<TCPSenderMessage> pre_sending_queue_;
+  deque<TCPSenderMessage> outstanding_messages_;
+
+  uint64_t sequence_numbers_in_flight_;
+
+  uint64_t consecutive_retransmissions_;
+
+  uint64_t next_seq_no_;
+
+  bool need_retransmission_;
 
 public:
   /* Construct TCP sender with given default Retransmission Timeout and possible ISN */
