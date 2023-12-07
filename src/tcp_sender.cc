@@ -104,7 +104,6 @@ optional<TCPSenderMessage> TCPSender::maybe_send()
   TCPSenderMessage message = pre_sending_queue_.front();
   pre_sending_queue_.pop_front();
   outstanding_messages_.push_back(message);
-  sequence_numbers_in_flight_ += message.sequence_length();
   return message;
 }
 
@@ -116,8 +115,9 @@ void TCPSender::push( Reader& outbound_stream )
       2.1 make a TCPSenderMessage and store in a queue
       2.2 remeber check SYN or FIN
       2.3 pop data from outbound stream
-      2.4 update next_seq_no_
-      2.5 if outbound stream is empty, break
+      2.4 if msg_size is zero, break
+      2.5 update next_seq_no_
+      2.6 update sequence_numbers_in_flight_
   */
 
   uint64_t free_buffer_size = window_size_ > 0 ?
@@ -151,6 +151,7 @@ void TCPSender::push( Reader& outbound_stream )
     pre_sending_queue_.push_back(message);
     free_buffer_size -= msg_size;
     next_seq_no_ += msg_size;
+    sequence_numbers_in_flight_ += msg_size;
   }
 }
 
