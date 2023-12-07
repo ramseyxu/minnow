@@ -18,14 +18,14 @@ Timer::Timer(uint64_t initial_RTO_ms)
 
 void Timer::start()
 {
-  assert(!is_running_)
+  assert(!is_running_);
   is_running_ = true;
   expired_time_ms_ = current_time_ms_ + current_RTO_ms_;
 }
 
 void Timer::stop()
 {
-  assert(is_running_)
+  assert(is_running_);
   is_running_ = false;
 }
 
@@ -57,7 +57,7 @@ void Timer::doublt_RTO()
 /* TCPSender constructor (uses a random ISN if none given) */
 TCPSender::TCPSender( uint64_t initial_RTO_ms, optional<Wrap32> fixed_isn )
   : isn_( fixed_isn.value_or( Wrap32 { random_device()() } ) ),
-  timer_(Timer(initial_RTO_ms)),
+  timer_(initial_RTO_ms),
   window_size_(1),
   pre_sending_queue_(deque<TCPSenderMessage>()),
   outstanding_messages_(deque<TCPSenderMessage>()),
@@ -88,8 +88,8 @@ optional<TCPSenderMessage> TCPSender::maybe_send()
   if (need_retransmission_) {
     assert(!outstanding_messages_.empty());
     need_retransmission_ = false;
-    if (!time_.is_running()) {
-      time_.start();
+    if (!timer_.is_running()) {
+      timer_.start();
     }
     return outstanding_messages_.front();
   }
@@ -98,8 +98,8 @@ optional<TCPSenderMessage> TCPSender::maybe_send()
     return {};
   }
 
-  if (!time_.is_running()) {
-    time_.start();
+  if (!timer_.is_running()) {
+    timer_.start();
   }
   TCPSenderMessage message = pre_sending_queue_.front();
   pre_sending_queue_.pop_front();
