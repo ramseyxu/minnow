@@ -117,15 +117,14 @@ void TCPSender::push( Reader& outbound_stream )
       2.2 remeber check SYN or FIN
       2.3 pop data from outbound stream
       2.4 update next_seq_no_
+      2.5 if outbound stream is empty, break
   */
 
   uint64_t free_buffer_size = window_size_ > 0 ?
     window_size_ - sequence_numbers_in_flight_ :
     1 - sequence_numbers_in_flight_;
 
-  while (free_buffer_size > 0 &&
-        !outbound_stream.is_finished() &&
-        outbound_stream.bytes_buffered() > 0) {
+  while (free_buffer_size > 0 && !outbound_stream.is_finished()) {
     bool is_syn = next_seq_no_ == 0;
     uint64_t payload_size = min(free_buffer_size - is_syn, TCPConfig::MAX_PAYLOAD_SIZE);
     auto avaliable_data = outbound_stream.peek();
@@ -149,6 +148,9 @@ void TCPSender::push( Reader& outbound_stream )
     pre_sending_queue_.push_back(message);
     free_buffer_size -= msg_size;
     next_seq_no_ += msg_size;
+    if (outbound_stream.bytes_buffered() == 0) {
+      break;
+    }
   }
 }
 
