@@ -145,12 +145,12 @@ void TCPSender::push( Reader& outbound_stream )
       is_fin
     );
     auto msg_size = message.sequence_length();
+    if (msg_size == 0)
+      break;
+
     pre_sending_queue_.push_back(message);
     free_buffer_size -= msg_size;
     next_seq_no_ += msg_size;
-    if (outbound_stream.bytes_buffered() == 0) {
-      break;
-    }
   }
 }
 
