@@ -15,6 +15,8 @@ class Timer {
   uint64_t initial_RTO_ms_;
 
 public:
+  Timer(uint64_t initial_RTO_ms);
+
   void start();
   void stop();
   bool is_running();
