@@ -185,6 +185,11 @@ void TCPSender::receive( const TCPReceiverMessage& msg )
 
   auto ackno = msg.ackno.value().unwrap(isn_, next_seq_no_);
 
+  // ignore ackno that is beyond next_seq_no_ (impossible ackno)
+  if (ackno > next_seq_no_) {
+    return;
+  }
+
   while (!outstanding_messages_.empty()) {
     auto message = outstanding_messages_.front();
     auto seqno = message.seqno.unwrap(isn_, next_seq_no_);
