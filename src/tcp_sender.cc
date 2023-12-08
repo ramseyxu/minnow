@@ -128,7 +128,7 @@ void TCPSender::push( Reader& outbound_stream )
 
   while (free_buffer_size > 0) {
     bool is_syn = next_seq_no_ == 0;
-    uint64_t max_payload_size = min(free_buffer_size, TCPConfig::MAX_PAYLOAD_SIZE);
+    uint64_t max_payload_size = min((uint64_t)free_buffer_size, TCPConfig::MAX_PAYLOAD_SIZE);
     auto avaliable_data = outbound_stream.peek();
     auto payload_size = min(max_payload_size, avaliable_data.size());
     string payload;
