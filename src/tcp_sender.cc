@@ -64,7 +64,8 @@ TCPSender::TCPSender( uint64_t initial_RTO_ms, optional<Wrap32> fixed_isn )
   sequence_numbers_in_flight_(0),
   consecutive_retransmissions_(0),
   next_seq_no_(0),
-  need_retransmission_(false)
+  need_retransmission_(false),
+  closed_(false)
 {
 }
 
@@ -109,6 +110,9 @@ optional<TCPSenderMessage> TCPSender::maybe_send()
 
 void TCPSender::push( Reader& outbound_stream )
 {
+  if (closed_) {
+    return;
+  }
   /*
     1. check how window size, how many free buffer I can push
     2. while there are free buffer and there are data in outbound stream
@@ -153,6 +157,7 @@ void TCPSender::push( Reader& outbound_stream )
     sequence_numbers_in_flight_ += msg_size;
 
     if (is_fin) {
+      closed_ = true;
       break;
     }
   }
