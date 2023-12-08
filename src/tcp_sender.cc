@@ -137,8 +137,8 @@ void TCPSender::push( Reader& outbound_stream )
     }
     outbound_stream.pop(payload_size);
 
-    // can't add fin if window is full
-    bool is_fin = outbound_stream.is_finished() && payload_size < max_payload_size;
+    // can't add fin if window is full, and MAX_PAYLOAD_SIZE only limit payload size
+    bool is_fin = outbound_stream.is_finished() && payload_size < free_buffer_size;
 
     TCPSenderMessage message(
       Wrap32::wrap(next_seq_no_, isn_),
