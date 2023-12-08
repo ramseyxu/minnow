@@ -99,9 +99,6 @@ optional<TCPSenderMessage> TCPSender::maybe_send()
     return {};
   }
 
-  if (!timer_.is_running()) {
-    timer_.start();
-  }
   TCPSenderMessage message = pre_sending_queue_.front();
   pre_sending_queue_.pop_front();
   outstanding_messages_.push_back(message);
@@ -120,8 +117,9 @@ void TCPSender::push( Reader& outbound_stream )
       2.2 remeber check SYN or FIN
       2.3 pop data from outbound stream
       2.4 if msg_size is zero, break
-      2.5 update next_seq_no_
-      2.6 update sequence_numbers_in_flight_
+      2.5 if no timer is running, start timer
+      2.6 update next_seq_no_
+      2.7 update sequence_numbers_in_flight_
   */
 
   uint64_t free_buffer_size = window_size_ > 0 ?
@@ -150,6 +148,10 @@ void TCPSender::push( Reader& outbound_stream )
     auto msg_size = message.sequence_length();
     if (msg_size == 0)
       break;
+
+    if (!timer_.is_running()) {
+      timer_.start();
+    }
 
     pre_sending_queue_.push_back(message);
     free_buffer_size -= payload_size;
@@ -214,12 +216,12 @@ void TCPSender::receive( const TCPReceiverMessage& msg )
   if (is_acked) {
     timer_.reset_RTO();
     consecutive_retransmissions_ = 0;
+    if (!outstanding_messages_.empty()) {
+      timer_.stop();
+      timer_.start();
+    }
   }
 
-  if (!outstanding_messages_.empty()) {
-    timer_.stop();
-    timer_.start();
-  }
 }
 
 void TCPSender::tick(size_t ms_since_last_tick )
