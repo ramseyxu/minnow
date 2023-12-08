@@ -128,16 +128,17 @@ void TCPSender::push( Reader& outbound_stream )
 
   while (free_buffer_size > 0) {
     bool is_syn = next_seq_no_ == 0;
-    uint64_t payload_size = min(free_buffer_size, TCPConfig::MAX_PAYLOAD_SIZE);
+    uint64_t max_payload_size = min(free_buffer_size, TCPConfig::MAX_PAYLOAD_SIZE);
     auto avaliable_data = outbound_stream.peek();
-    payload_size = min(payload_size, avaliable_data.size());
+    auto payload_size = min(max_payload_size, avaliable_data.size());
     string payload;
     if (avaliable_data.size() > 0 && payload_size > 0) {
       payload = std::string(avaliable_data.begin(), avaliable_data.begin() + payload_size);
     }
     outbound_stream.pop(payload_size);
 
-    bool is_fin = outbound_stream.is_finished();
+    // can't add fin if window is full
+    bool is_fin = outbound_stream.is_finished() && payload_size < max_payload_size;
 
     TCPSenderMessage message(
       Wrap32::wrap(next_seq_no_, isn_),
