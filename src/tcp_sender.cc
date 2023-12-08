@@ -124,9 +124,9 @@ void TCPSender::push( Reader& outbound_stream )
     window_size_ - sequence_numbers_in_flight_ :
     1 - sequence_numbers_in_flight_;
 
-  while (free_buffer_size > 0 && !outbound_stream.is_finished()) {
+  while (free_buffer_size > 0) {
     bool is_syn = next_seq_no_ == 0;
-    uint64_t payload_size = min(free_buffer_size - is_syn, TCPConfig::MAX_PAYLOAD_SIZE);
+    uint64_t payload_size = min(free_buffer_size, TCPConfig::MAX_PAYLOAD_SIZE);
     auto avaliable_data = outbound_stream.peek();
     payload_size = min(payload_size, avaliable_data.size());
     string payload;
@@ -135,7 +135,6 @@ void TCPSender::push( Reader& outbound_stream )
     }
     outbound_stream.pop(payload_size);
 
-    // maybe adding is_fin will overflow the window size, we maybe need to handle it
     bool is_fin = outbound_stream.is_finished();
 
     TCPSenderMessage message(
@@ -149,9 +148,13 @@ void TCPSender::push( Reader& outbound_stream )
       break;
 
     pre_sending_queue_.push_back(message);
-    free_buffer_size -= msg_size;
+    free_buffer_size -= payload_size;
     next_seq_no_ += msg_size;
     sequence_numbers_in_flight_ += msg_size;
+
+    if (is_fin) {
+      break;
+    }
   }
 }
 
